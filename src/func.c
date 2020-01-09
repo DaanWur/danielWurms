@@ -47,14 +47,14 @@ void transformObject(char *originalObjectFileName, char *deformedObjectFileName)
 
 }
 
-Object* createObject(char *f) {
-	FILE *fileToObject = fopen(f, "r");
+Object* createObject(char *fileName) {
+	FILE *fileToObject = fopen(fileName, "r");
 	if (fileToObject == NULL) {
 		printf("Failed opening the file , Exiting !\n ");
 		return NULL;
 
 	}
-	return objectFromFile(&f);
+	return objectFromFile(&fileToObject);
 }
 //creates vertex
 Vertex* createVertex(char *line, Vertex *v) {
@@ -166,12 +166,12 @@ void printFaces(Object *ptr, void *numberOfTriangularFaces) {
 	int counter = 0;
 
 	for (int i = 0; i < ptr->numberOfFaces; ++i) {
-		int size = ptr->faces[i]->size;
+		int size = ptr->faces[i].size;
 		if (size == 3) {
 			counter += 1;
 		}
 	}
-	*((int) numberOfTriangularFaces) = counter;
+	&((int) numberOfTriangularFaces) = counter;
 	printf("%d", numberOfTriangularFaces);
 }
 //prints the number of all vertexes
@@ -180,13 +180,13 @@ void printVertexes(Object *ptr, void *numberOfVertexes) {
 	for (int i = 0; i < ptr->numberOfVertexes; ++i) {
 		counter += 1;
 	}
-	*((int) numberOfVertexes) = counter;
+	((int) numberOfVertexes) = counter;
 	printf("%d", numberOfVertexes);
 }
 void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
 	double semiPerimeter = 0, area = 0;
 	for (int i = 0; i < ptr->numberOfFaces; ++i) {
-		int size = ptr->faces[i]->size;
+		int size = ptr->faces[i].size;
 		if (size == 3) {
 
 		}
