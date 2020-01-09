@@ -1,4 +1,5 @@
-
+#include "vertex.h"
+#include "face.h"
 typedef struct {
 	int numberOfVertexes;
 	struct Vertex *vertexes;

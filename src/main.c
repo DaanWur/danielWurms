@@ -7,14 +7,12 @@
  Description : Hello World in C, Ansi-style
  ============================================================================
  */
-
+#include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
-#include "object.h"
+#include <string.h>
 #include "scene.h"
-#include "node.h"
-#include "face.h"
-#include "vertex.h"
+
 #define MAX_SIZE 100
 
 enum FileType {
@@ -23,7 +21,7 @@ enum FileType {
 // helper which copies the text and deforming the x value
 void copyAndModify(FILE *original, FILE *deformed) {
 	float x, y, z;
-	char *line = malloc(sizeof(char));
+	char *line = (char*) calloc(1, sizeof(char));
 	int counter = 0;
 	while (fgets(line, MAX_SIZE, original) != NULL || counter != MAX_SIZE) {
 		if (line[0] == 'v' && line[1] == ' ') {
@@ -58,42 +56,44 @@ void transformObject(char *originalObjectFileName, char *deformedObjectFileName)
 
 }
 
-Object* createObject(char *filename) {
-	FILE *fileToObject = fopen(filename, "r");
+Object* createObject(char *f) {
+	FILE *fileToObject = fopen(f, "r");
 	if (fileToObject == NULL) {
 		printf("Failed opening the file , Exiting !\n ");
 		return NULL;
 
 	}
-	return objectFromFileGenerator(filename);
+	return objectFromFileGenerator(f);
 }
 //creates vertex
-void createVertex(char *line, Vertex *v) {
+Vertex* createVertex(char *line, Vertex *v) {
 	float x, y, z;
 	sscanf(line, "%*c %f %f %f", &x, &y, &z);
 	v->x = x;
 	v->y = y;
 	v->z = z;
-
+	return v;
 }
 //creates face
-void createFace(char *line, Face *face) {
-	char *delimeters = ' ';
-	char *temp = strtok(line, delimeters);
+Face* createFace(char *line, Face *face) {
+	char *delimeters = " ";
+	char *temp = (char*) calloc(1, sizeof(char));
+	temp = strtok(line, delimeters);
+
 	while (temp != NULL) {
 		temp = strtok(NULL, delimeters);
-		face->vertex = atoi(temp);
+		*face->vertex = atoi(temp);
 	}
-
+	return face;
 }
 //creates object
 Object* objectFromFileGenerator(FILE *filename) {
-	Object *obj = malloc(sizeof(Object));
+	Object *obj = (Object*) malloc(sizeof(Object));
 	if (obj == NULL) {
 		printf("Failed allocating memory for object");
 		return NULL;
 	}
-	Vertex *vertexes = malloc(sizeof(Vertex));
+	Vertex *vertexes = (Vertex*) malloc(sizeof(Vertex));
 	if (obj == NULL) {
 		printf("Failed allocating memory for vertex");
 		return NULL;
@@ -108,20 +108,22 @@ Object* objectFromFileGenerator(FILE *filename) {
 	char *line = malloc(sizeof(char));
 	while (fgets(line, MAX_SIZE, filename)) {
 		if (line[0] == 'v' && line[1] == ' ') {
-			vertexes = (Vertex*) realloc(obj->numberOfVertexes + 1,
-					sizeof(Vertex));
+			vertexes = (Vertex*) realloc(vertexes,
+					(obj->numberOfVertexes + 1) * sizeof(Vertex));
 			if (vertexes == NULL) {
 				printf("Failed allocating vertexes");
 				return NULL;
 			}
-			vertexes[obj->numberOfVertexes++] = createVertex(line, vertexes);
+			vertexes[obj->numberOfVertexes++] = *createVertex(line, vertexes);
 		} else if (line[0] == 'f' && line[1] == ' ') {
-			faces = realloc(obj->numberOfFaces + 1, sizeof(Face));
+			faces = (Face*) realloc(faces,
+					(obj->numberOfFaces + 1) * sizeof(Face));
 			if (faces == NULL) {
 				printf("Faild allocating faces");
 				return NULL;
 			}
-			faces[obj->numberOfFaces++] = createFace(line, faces);
+			createFace(line, faces);
+			faces[obj->numberOfFaces++] = *createFace(line, faces);
 		}
 	}
 	obj->vertexes = vertexes;
@@ -156,6 +158,7 @@ Scene* createScene(char *fileName, ...) {
 	scene->head = (Lnode*) calloc(1, sizeof(Lnode));
 	char *fileRead = currentFile(fileName);
 	Lnode *nodePtr = scene->head;
+	nodePtr = calloc(1, sizeof(scene->head));
 	while (fileRead != NULL) {
 		Object *object = createObject(fileName);
 		scene->numofobjects++;
@@ -163,12 +166,17 @@ Scene* createScene(char *fileName, ...) {
 		fileRead = va_arg(files, char*);
 	}
 	va_end(files);
-	scene->head = *nodePtr;
+	scene->head = nodePtr;
 
 	return scene;
 }
 
 void printFaces(Object *ptr, void *numberOfTriangularFaces) {
+//	int counter = 0;
+//	Face *fPtr = ptr->faces;
+//	for (int i = 0; i < ptr->numberOfFaces; ++i) {
+	//	int size = ptr->faces[i].size;
+//	}
 
 }
 
