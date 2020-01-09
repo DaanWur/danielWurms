@@ -212,6 +212,10 @@ void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
 	*((double*)totalAreaOfTriangularFaces) = totalArea;
 }
 
+void perform(Scene scene , void (*funcToChoose)(Object* ,void*) , char *howToPrint , char *strPtr){
+
+}
+
 /** void saveScene(Scene *scene, char *fileName, enum FileType type);
  Scene * loadScene(char *fileName, enum FileType type);
  void freeScene(Scene *scene);*/
