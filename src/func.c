@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -46,6 +47,7 @@ void transformObject(char *originalObjectFileName, char *deformedObjectFileName)
 	copyAndModify(originalFile, deformedFile);
 
 }
+Object* objectFromFile(FILE *file);
 
 Object* createObject(char *fileName) {
 	FILE *fileToObject = fopen(fileName, "r");
@@ -54,7 +56,7 @@ Object* createObject(char *fileName) {
 		return NULL;
 
 	}
-	return objectFromFile(&fileToObject);
+	return objectFromFile(fileToObject);
 }
 //creates vertex
 Vertex* createVertex(char *line, Vertex *v) {
@@ -171,27 +173,43 @@ void printFaces(Object *ptr, void *numberOfTriangularFaces) {
 			counter += 1;
 		}
 	}
-	&((int) numberOfTriangularFaces) = counter;
-	printf("%d", numberOfTriangularFaces);
+	*((int*) numberOfTriangularFaces) = counter;
 }
 //prints the number of all vertexes
 void printVertexes(Object *ptr, void *numberOfVertexes) {
-	int counter = 0;
-	for (int i = 0; i < ptr->numberOfVertexes; ++i) {
-		counter += 1;
-	}
-	((int) numberOfVertexes) = counter;
-	printf("%d", numberOfVertexes);
+
+	*((int*) numberOfVertexes) = ptr->numberOfVertexes;
 }
 void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
-	double semiPerimeter = 0, area = 0;
+	double semiPerimeter = 0, totalArea = 0;
 	for (int i = 0; i < ptr->numberOfFaces; ++i) {
 		int size = ptr->faces[i].size;
 		if (size == 3) {
+			int firstV = ptr->faces[i].vertex[0];
+			int secondV = ptr->faces[i].vertex[1];
+			int thirdV = ptr->faces[i].vertex[2];
+			double firstTRib =
+					sqrt(pow(ptr->vertexes[firstV].x - ptr->vertexes[secondV].x , 2)
+					+ (pow(ptr->vertexes[firstV].y - ptr->vertexes[secondV].y, 2))
+					+ (pow(ptr->vertexes[firstV].z - ptr->vertexes[secondV].z, 2)));//first and second
+			double secondTRib =
+						sqrt(pow(ptr->vertexes[firstV].x - ptr->vertexes[thirdV].x ,2)
+					+ 	pow(ptr->vertexes[firstV].y - ptr->vertexes[thirdV].y ,2)
+					+	pow(ptr->vertexes[firstV].z - ptr->vertexes[thirdV].z ,2));//first and third
+			double thirdTRib =
+						sqrt(pow(ptr->vertexes[secondV].x - ptr->vertexes[thirdV].x ,2)
+					+	pow(ptr->vertexes[secondV].y - ptr->vertexes[thirdV].y , 2)
+					+	pow( ptr->vertexes[secondV].z - ptr->vertexes[thirdV].z ,2));//second and third
+			semiPerimeter = (firstTRib + secondTRib + thirdTRib) / 2;
+			double localArea = sqrt(
+					semiPerimeter * (semiPerimeter - firstTRib)
+							* (semiPerimeter - secondTRib)
+							* (semiPerimeter - thirdTRib));
+			totalArea += localArea;
 
 		}
 	}
-
+	*((double*)totalAreaOfTriangularFaces) = totalArea;
 }
 
 /** void saveScene(Scene *scene, char *fileName, enum FileType type);
