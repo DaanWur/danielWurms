@@ -183,8 +183,10 @@ void printVertexes(Object *ptr, void *numberOfVertexes) {
 	*((int) numberOfVertexes) = counter;
 	printf("%d", numberOfVertexes);
 }
+void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces){
 
-/** void getTotalArea (Object *ptr, void *totalAreaOfTriangularFaces);
- void saveScene(Scene *scene, char *fileName, enum FileType type);
+}
+
+/** void saveScene(Scene *scene, char *fileName, enum FileType type);
  Scene * loadScene(char *fileName, enum FileType type);
  void freeScene(Scene *scene);*/
