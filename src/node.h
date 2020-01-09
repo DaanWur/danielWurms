@@ -2,5 +2,5 @@
 
 typedef struct {
 	Object *object;
-	struct node *next;
+	Lnode *next;
 } Lnode;

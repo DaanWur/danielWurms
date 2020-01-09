@@ -2,7 +2,7 @@
 #include "face.h"
 typedef struct {
 	int numberOfVertexes;
-	struct Vertex *vertexes;
+	Vertex *vertexes;
 	int numberOfFaces;
-	struct Face *faces;
+	Face *faces;
 } Object;

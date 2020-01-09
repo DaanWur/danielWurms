@@ -2,7 +2,7 @@
 
 typedef struct {
 	int numofobjects;
-	struct Lnode *head;
+	Lnode *head;
 
 } Scene;
 

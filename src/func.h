@@ -161,18 +161,30 @@ Scene* createScene(char *fileName, ...) {
 
 	return scene;
 }
-
+//prints the triangular faces
 void printFaces(Object *ptr, void *numberOfTriangularFaces) {
 	int counter = 0;
-	Face *fPtr = ptr->faces;
 
 	for (int i = 0; i < ptr->numberOfFaces; ++i) {
+		int size = ptr->faces[i]->size;
+		if (size == 3) {
+			counter += 1;
+		}
 	}
-
+	*((int) numberOfTriangularFaces) = counter;
+	printf("%d", numberOfTriangularFaces);
+}
+//prints the number of all vertexes
+void printVertexes(Object *ptr, void *numberOfVertexes) {
+	int counter = 0;
+	for (int i = 0; i < ptr->numberOfVertexes; ++i) {
+		counter += 1;
+	}
+	*((int) numberOfVertexes) = counter;
+	printf("%d", numberOfVertexes);
 }
 
-/**void printVertexes(Object *ptr, void *numberOfVertexes);
- void getTotalArea (Object *ptr, void *totalAreaOfTriangularFaces);
+/** void getTotalArea (Object *ptr, void *totalAreaOfTriangularFaces);
  void saveScene(Scene *scene, char *fileName, enum FileType type);
  Scene * loadScene(char *fileName, enum FileType type);
  void freeScene(Scene *scene);*/
