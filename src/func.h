@@ -183,7 +183,14 @@ void printVertexes(Object *ptr, void *numberOfVertexes) {
 	*((int) numberOfVertexes) = counter;
 	printf("%d", numberOfVertexes);
 }
-void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces){
+void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
+	double semiPerimeter = 0, area = 0;
+	for (int i = 0; i < ptr->numberOfFaces; ++i) {
+		int size = ptr->faces[i]->size;
+		if (size == 3) {
+
+		}
+	}
 
 }
 
