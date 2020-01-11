@@ -69,13 +69,16 @@ Vertex* createVertex(char *line, Vertex *v) {
 }
 //creates face
 Face* createFace(char *line, Face *face) {
-	char *delimeters = " ";
-	char *temp = (char*) calloc(1, sizeof(char));
+	char *delimeters = " f";
+	char *temp = NULL;
+	temp = (char*) calloc(1, sizeof(char));
 	temp = strtok(line, delimeters);
-
+	face->vertex = (int*) calloc(face->size, sizeof(int));
 	while (temp != NULL) {
+		(face->vertex[face->size]) = atoi(temp);
+
 		temp = strtok(NULL, delimeters);
-		*face->vertex = atoi(temp);
+		face->size++;
 	}
 	return face;
 }
@@ -109,14 +112,13 @@ Object* objectFromFile(FILE *file) {
 			}
 			vertexes[obj->numberOfVertexes++] = *createVertex(line, vertexes);
 		} else if (line[0] == 'f' && line[1] == ' ') {
-			faces = (Face*) realloc(faces,
-					(obj->numberOfFaces + 1) * sizeof(Face));
+			faces = (Face*) realloc(faces, (obj->numberOfFaces) * sizeof(Face));
 			if (faces == NULL) {
 				printf("Faild allocating faces");
 				return NULL;
 			}
-			createFace(line, faces);
-			faces[obj->numberOfFaces++] = *createFace(line, faces);
+			faces[obj->numberOfFaces] = *createFace(line, faces);
+			obj->numberOfFaces = obj->numberOfFaces + 1;
 		}
 	}
 	obj->vertexes = vertexes;
