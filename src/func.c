@@ -47,16 +47,20 @@ void transformObject(char *originalObjectFileName, char *deformedObjectFileName)
 	copyAndModify(originalFile, deformedFile);
 
 }
-Object* objectFromFile(FILE *file);
+Object* objectFromFile(FILE *file1, FILE *file2);
 
 Object* createObject(char *fileName) {
-	FILE *fileToObject = fopen(fileName, "r");
-	if (fileToObject == NULL) {
+	FILE *file1 = fopen(fileName, "r");
+	FILE *file2 = fopen(fileName, "r");
+	if (file1 == NULL) {
 		printf("Failed opening the file , Exiting !\n ");
 		return NULL;
 
+	} else if (file2 == NULL) {
+		printf("Failed opening the file , Exiting !\n ");
+		return NULL;
 	}
-	return objectFromFile(fileToObject);
+	return objectFromFile(file1, file2);
 }
 //creates vertex
 Vertex* createVertex(char *line, Vertex *v) {
@@ -67,13 +71,26 @@ Vertex* createVertex(char *line, Vertex *v) {
 	v->z = z;
 	return v;
 }
+int countVertexes(FILE *file) {
+	char *line = (char*) malloc(sizeof(char));
+	int counter = 0;
+	while (fgets(line, MAX_SIZE, file)) {
+		if (line[0] == 'v' && line[1] == ' ')
+			counter++;
+	}
+	free(line);
+	return counter;
+
+}
+
 //creates face
 Face* createFace(char *line, Face *face) {
-	char *delimeters = " f";
+	char *delimeters = " ";
 	char *temp = NULL;
 	temp = (char*) calloc(1, sizeof(char));
 	temp = strtok(line, delimeters);
 	face->vertex = (int*) calloc(face->size, sizeof(int));
+	temp = strtok(NULL, delimeters);
 	while (temp != NULL) {
 		(face->vertex[face->size]) = atoi(temp);
 
@@ -82,51 +99,71 @@ Face* createFace(char *line, Face *face) {
 	}
 	return face;
 }
+int countFaces(FILE *file) {
+	char *line = (char*) malloc(sizeof(char));
+	int counter = 0;
+	while (fgets(line, MAX_SIZE, file)) {
+		if (line[0] == 'f' && line[1] == ' ')
+			counter++;
+	}
+	free(line);
+
+	return counter;
+
+}
 //creates object
-Object* objectFromFile(FILE *file) {
+Object* objectFromFile(FILE *file1, FILE *file2) {
 	Object *obj = (Object*) malloc(sizeof(Object));
 	if (obj == NULL) {
 		printf("Failed allocating memory for object");
 		return NULL;
 	}
 
-	Vertex *vertexes = (Vertex*) malloc(sizeof(Vertex));
-	if (vertexes == NULL) {
+	obj->vertexes = (Vertex*) malloc(sizeof(Vertex));
+	if (obj->vertexes == NULL) {
 		printf("Failed allocating memory for vertex");
 		return NULL;
 	}
-	Face *faces = malloc(sizeof(Face));
-	if (faces == NULL) {
+	obj->faces = malloc(sizeof(Face));
+	if (obj->faces == NULL) {
 		printf("Failed allocating memory for face");
 		return NULL;
 	}
-	char *line = NULL;
-	line = malloc(sizeof(char));
-	obj->numberOfFaces = 0;
-	obj->numberOfVertexes = 0;
-	while (fgets(line, MAX_SIZE, file)) {
+	char *line = (char*) calloc(1, sizeof(char));
+	obj->numberOfVertexes = countVertexes(file1);
+	rewind(file1);
+	obj->numberOfFaces = countFaces(file2);
+	rewind(file2);
+	int i = 0;
+	obj->vertexes = (Vertex*) realloc(obj->vertexes,
+			(obj->numberOfVertexes + 1) * sizeof(Vertex));
+	while (fgets(line, MAX_SIZE, file1)) {
 		if (line[0] == 'v' && line[1] == ' ') {
-			vertexes = (Vertex*) realloc(vertexes,(obj->numberOfVertexes + 1) * sizeof(Vertex));
 			if (obj->vertexes == NULL) {
 				printf("Failed allocating vertexes");
 				return NULL;
 			}
-			vertexes[obj->numberOfVertexes++] = *createVertex(line, vertexes);
-			obj->numberOfVertexes = obj->numberOfVertexes + 1;
-		} else if (line[0] == 'f' && line[1] == ' ') {
-			faces = (Face*) realloc(faces,(obj->numberOfFaces + 1) * sizeof(Face));
-			if (obj->faces == NULL) {
-				printf("Faild allocating faces");
-				return NULL;
-			}
-			faces[obj->numberOfFaces++] = *createFace(line, faces);
-			obj->numberOfFaces = obj->numberOfFaces + 1;
+			(obj->vertexes[i]) = *(createVertex(line, obj->vertexes));
+			i++;
 		}
 	}
-	obj->vertexes = vertexes;
-	obj->faces = faces;
+	int j = 0;
+	obj->faces = (Face*) realloc(obj->faces,
+			(obj->numberOfFaces + 1) * sizeof(Face));
+	while (fgets(line, MAX_SIZE, file2)) {
+		if (line[0] == 'f' && line[1] == ' ') {
+			if (obj->faces == NULL) {
+				printf("Failed allocating faces");
+				return NULL;
+			}
+			obj->faces[j] = *createFace(line, obj->faces);
+			j++;
+		}
+	}
+
 	free(line);
-	fclose(file);
+	fclose(file1);
+	fclose(file2);
 	return obj;
 }
 

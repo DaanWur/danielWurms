@@ -15,7 +15,7 @@ Vertex* createVertex(char *line, Vertex *v);
 
 Face* createFace(char *line, Face *face);
 
-Object* objectFromFile(FILE *file);
+Object* objectFromFile(FILE *file1, FILE *file2);
 
 char* currentFile(const char *fileName);
 
