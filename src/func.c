@@ -89,35 +89,37 @@ Object* objectFromFile(FILE *file) {
 		printf("Failed allocating memory for object");
 		return NULL;
 	}
+
 	Vertex *vertexes = (Vertex*) malloc(sizeof(Vertex));
-	if (obj == NULL) {
+	if (vertexes == NULL) {
 		printf("Failed allocating memory for vertex");
 		return NULL;
 	}
 	Face *faces = malloc(sizeof(Face));
-	if (obj == NULL) {
+	if (faces == NULL) {
 		printf("Failed allocating memory for face");
 		return NULL;
 	}
+	char *line = NULL;
+	line = malloc(sizeof(char));
 	obj->numberOfFaces = 0;
 	obj->numberOfVertexes = 0;
-	char *line = malloc(sizeof(char));
 	while (fgets(line, MAX_SIZE, file)) {
 		if (line[0] == 'v' && line[1] == ' ') {
-			vertexes = (Vertex*) realloc(vertexes,
-					(obj->numberOfVertexes + 1) * sizeof(Vertex));
-			if (vertexes == NULL) {
+			vertexes = (Vertex*) realloc(vertexes,(obj->numberOfVertexes + 1) * sizeof(Vertex));
+			if (obj->vertexes == NULL) {
 				printf("Failed allocating vertexes");
 				return NULL;
 			}
 			vertexes[obj->numberOfVertexes++] = *createVertex(line, vertexes);
+			obj->numberOfVertexes = obj->numberOfVertexes + 1;
 		} else if (line[0] == 'f' && line[1] == ' ') {
-			faces = (Face*) realloc(faces, (obj->numberOfFaces) * sizeof(Face));
-			if (faces == NULL) {
+			faces = (Face*) realloc(faces,(obj->numberOfFaces + 1) * sizeof(Face));
+			if (obj->faces == NULL) {
 				printf("Faild allocating faces");
 				return NULL;
 			}
-			faces[obj->numberOfFaces] = *createFace(line, faces);
+			faces[obj->numberOfFaces++] = *createFace(line, faces);
 			obj->numberOfFaces = obj->numberOfFaces + 1;
 		}
 	}
@@ -140,7 +142,7 @@ char* currentFile(const char *fileName) {
 Scene* createScene(char *fileName, ...) {
 	va_list files;
 	va_start(files, fileName);
-	Scene *scene = calloc(1, sizeof(Scene));
+	Scene *scene = (Scene*) calloc(1, sizeof(Scene));
 	if (scene == NULL) {
 		printf("Can't allocate memory , canceling");
 		return NULL;
@@ -150,19 +152,19 @@ Scene* createScene(char *fileName, ...) {
 		printf("Cannot access file, canceling !\n");
 		return NULL;
 	}
-	scene->head = (Lnode*) calloc(1, sizeof(Lnode));
 	char *fileRead = currentFile(fileName);
-	Lnode *nodePtr = scene->head;
+	scene->head = (Lnode*) calloc(1, sizeof(Lnode));
+	Lnode *nodePtr = (*scene).head;
 	nodePtr = calloc(1, sizeof(scene->head));
 	while (fileRead != NULL) {
 		Object *object = createObject(fileName);
+
 		scene->numofobjects++;
 		nodePtr->next = object;
 		fileRead = va_arg(files, char*);
 	}
 	va_end(files);
 	scene->head = nodePtr;
-
 	return scene;
 }
 //prints the triangular faces
