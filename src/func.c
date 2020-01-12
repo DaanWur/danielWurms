@@ -91,11 +91,11 @@ Face* createFace(char *line, Face *face) {
 	temp = strtok(line, delimeters);
 	face->vertex = (int*) calloc(face->size, sizeof(int));
 	temp = strtok(NULL, delimeters);
-	while (temp != NULL) {
+	while (temp != NULL && strcmp(temp, "\n") != 0) {
 		(face->vertex[face->size]) = atoi(temp);
+		face->size++;
 
 		temp = strtok(NULL, delimeters);
-		face->size++;
 	}
 	return face;
 }
