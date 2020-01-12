@@ -1,10 +1,4 @@
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include "scene.h"
-
+#include "func.h"
 #define MAX_SIZE 100
 
 enum FileType {
@@ -47,11 +41,12 @@ void transformObject(char *originalObjectFileName, char *deformedObjectFileName)
 	copyAndModify(originalFile, deformedFile);
 
 }
-Object* objectFromFile(FILE *file1, FILE *file2);
+Object* objectFromFile(FILE *file1, FILE *file2, Object *obj);
 
 Object* createObject(char *fileName) {
 	FILE *file1 = fopen(fileName, "r");
 	FILE *file2 = fopen(fileName, "r");
+	Object *obj = (Object*) malloc(sizeof(Object));
 	if (file1 == NULL) {
 		printf("Failed opening the file , Exiting !\n ");
 		return NULL;
@@ -60,10 +55,11 @@ Object* createObject(char *fileName) {
 		printf("Failed opening the file , Exiting !\n ");
 		return NULL;
 	}
-	return objectFromFile(file1, file2);
+	return objectFromFile(file1, file2, obj);
 }
 //creates vertex
-Vertex* createVertex(char *line, Vertex *v) {
+Vertex* createVertex(char *line) {
+	Vertex *v = (Vertex*) malloc(sizeof(Vertex));
 	float x, y, z;
 	sscanf(line, "%*c %f %f %f", &x, &y, &z);
 	v->x = x;
@@ -84,19 +80,27 @@ int countVertexes(FILE *file) {
 }
 
 //creates face
-Face* createFace(char *line, Face *face) {
-	char *delimeters = " ";
+Face* createFace(char *line,Face *face) {
+	int *vertexes = face->vertex;
+	char *delimeters = " f";
 	char *temp = NULL;
 	temp = (char*) calloc(1, sizeof(char));
 	temp = strtok(line, delimeters);
-	face->vertex = (int*) calloc(face->size, sizeof(int));
+	face->vertex = (int*) calloc(1, sizeof(int));
 	temp = strtok(NULL, delimeters);
 	while (temp != NULL && strcmp(temp, "\n") != 0) {
-		(face->vertex[face->size]) = atoi(temp);
-		face->size++;
+		int size = face->size + 1;
+		face->vertex = (int*) realloc(vertexes, size * sizeof(int));
 
+		if (face->vertex == NULL) {
+			printf("Failed to reallocate memory \n");
+			return NULL;
+		}
+		vertexes = face->vertex;
+		face->vertex[face->size++] = atoi(temp);
 		temp = strtok(NULL, delimeters);
 	}
+
 	return face;
 }
 int countFaces(FILE *file) {
@@ -112,16 +116,10 @@ int countFaces(FILE *file) {
 
 }
 //creates object
-Object* objectFromFile(FILE *file1, FILE *file2) {
-	Object *obj = (Object*) malloc(sizeof(Object));
+Object* objectFromFile(FILE *file1, FILE *file2, Object *obj) {
+	obj->vertexes = malloc(sizeof(int));
 	if (obj == NULL) {
 		printf("Failed allocating memory for object");
-		return NULL;
-	}
-
-	obj->vertexes = (Vertex*) malloc(sizeof(Vertex));
-	if (obj->vertexes == NULL) {
-		printf("Failed allocating memory for vertex");
 		return NULL;
 	}
 	obj->faces = malloc(sizeof(Face));
@@ -129,35 +127,39 @@ Object* objectFromFile(FILE *file1, FILE *file2) {
 		printf("Failed allocating memory for face");
 		return NULL;
 	}
-	char *line = (char*) calloc(1, sizeof(char));
-	obj->numberOfVertexes = countVertexes(file1);
-	rewind(file1);
-	obj->numberOfFaces = countFaces(file2);
-	rewind(file2);
-	int i = 0;
-	obj->vertexes = (Vertex*) realloc(obj->vertexes,
-			(obj->numberOfVertexes + 1) * sizeof(Vertex));
+
+	obj->faces->vertex = calloc(3, sizeof(Vertex));
+	if (obj->vertexes == NULL) {
+		printf("Failed allocating memory for vertex");
+		return NULL;
+	}
+	char line[MAX_SIZE];
+	Vertex *vertexes = obj->vertexes;
+	Face *faces = obj->faces;
+	obj->numberOfVertexes = 0;
+	obj->numberOfFaces = 0;
 	while (fgets(line, MAX_SIZE, file1)) {
 		if (line[0] == 'v' && line[1] == ' ') {
+			obj->vertexes = realloc(vertexes,
+					(obj->numberOfVertexes + 1) * sizeof(Vertex));
 			if (obj->vertexes == NULL) {
 				printf("Failed allocating vertexes");
 				return NULL;
 			}
-			(obj->vertexes[i]) = *(createVertex(line, obj->vertexes));
-			i++;
+			vertexes = obj->vertexes;
+			obj->vertexes[obj->numberOfVertexes++] = *createVertex(line);
 		}
 	}
-	int j = 0;
-	obj->faces = (Face*) realloc(obj->faces,
-			(obj->numberOfFaces + 1) * sizeof(Face));
 	while (fgets(line, MAX_SIZE, file2)) {
 		if (line[0] == 'f' && line[1] == ' ') {
+			obj->faces = realloc(faces,
+					(obj->numberOfFaces + 1) * sizeof(Face));
 			if (obj->faces == NULL) {
 				printf("Failed allocating faces");
 				return NULL;
 			}
-			obj->faces[j] = *createFace(line, obj->faces);
-			j++;
+			faces = obj->faces;
+			createFace(line, &obj->faces[obj->numberOfFaces++]);
 		}
 	}
 
@@ -179,7 +181,7 @@ char* currentFile(const char *fileName) {
 Scene* createScene(char *fileName, ...) {
 	va_list files;
 	va_start(files, fileName);
-	Scene *scene = (Scene*) calloc(1, sizeof(Scene));
+	Scene *scene = malloc(sizeof(Scene));
 	if (scene == NULL) {
 		printf("Can't allocate memory , canceling");
 		return NULL;

@@ -11,11 +11,11 @@ void transformObject(char *originalObjectFileName, char *deformedObjectFileName)
 
 Object* createObject(char *fileName);
 
-Vertex* createVertex(char *line, Vertex *v);
+Vertex* createVertex(char *line);
 
 Face* createFace(char *line, Face *face);
 
-Object* objectFromFile(FILE *file1, FILE *file2);
+Object* objectFromFile(FILE *file1, FILE *file2, Object *obj);
 
 char* currentFile(const char *fileName);
 
