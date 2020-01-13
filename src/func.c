@@ -167,15 +167,7 @@ Object* objectFromFile(FILE *file1, FILE *file2, Object *obj) {
 	return obj;
 }
 
-//char* currentFile(const char *fileName) {
-//	char *temp = (char*) calloc(1, sizeof(char));
-//	int counter = 0;
-//	while (temp[counter] != '\0') {
-//		temp[counter] = fileName[counter];
-//		counter++;
-//	}
-//	return temp;
-//}
+//inserts the node to the last place in the linked list
 Lnode* insertLast(Lnode *head, Object *obj) {
 	Lnode *tempPtr = head;
 	if (head->object == NULL) {
@@ -196,6 +188,7 @@ Scene* createScene(char *fileName, ...) {
 	va_list files;
 	va_start(files, fileName);
 	Scene *scene = (Scene*)malloc(sizeof(Scene));
+	int totNumOfVertexes = 0 , totNumOfFaces = 0;
 	if (scene == NULL) {
 		printf("Can't allocate memory , canceling");
 		return NULL;
@@ -227,12 +220,12 @@ void printFaces(Object *ptr, void *numberOfTriangularFaces) {
 			counter += 1;
 		}
 	}
-	*((int*) numberOfTriangularFaces) = counter;
+	*((int*) numberOfTriangularFaces) += counter;
 }
 //prints the number of all vertexes
 void printVertexes(Object *ptr, void *numberOfVertexes) {
 
-	*((int*) numberOfVertexes) = ptr->numberOfVertexes;
+	*((int*) numberOfVertexes) += ptr->numberOfVertexes;
 }
 void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
 	double semiPerimeter = 0, totalArea = 0;
@@ -260,7 +253,7 @@ void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
 
 		}
 	}
-	*((double*) totalAreaOfTriangularFaces) = totalArea;
+	*((double*) totalAreaOfTriangularFaces) += totalArea;
 }
 
 void perform(Scene *scene, void (*funcToChoose)(Object*, void*),char *howToPrint, char *strPtr) {
