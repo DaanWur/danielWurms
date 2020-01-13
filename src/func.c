@@ -80,27 +80,25 @@ int countVertexes(FILE *file) {
 }
 
 //creates face
-Face* createFace(char *line,Face *face) {
-	int *vertexes = face->vertex;
+Face* createFace(char *line, Face *face) {
 	char *delimeters = " f";
 	char *temp = NULL;
-	temp = (char*) calloc(1, sizeof(char));
 	temp = strtok(line, delimeters);
 	face->vertex = (int*) calloc(1, sizeof(int));
-	temp = strtok(NULL, delimeters);
+	face->size = 0;
+//	temp = strtok(NULL, delimeters);
+
 	while (temp != NULL && strcmp(temp, "\n") != 0) {
 		int size = face->size + 1;
-		face->vertex = (int*) realloc(vertexes, size * sizeof(int));
+		face->vertex = (int*) realloc(face->vertex, size * sizeof(int));
 
 		if (face->vertex == NULL) {
 			printf("Failed to reallocate memory \n");
 			return NULL;
 		}
-		vertexes = face->vertex;
 		face->vertex[face->size++] = atoi(temp);
 		temp = strtok(NULL, delimeters);
 	}
-
 	return face;
 }
 int countFaces(FILE *file) {
@@ -159,29 +157,45 @@ Object* objectFromFile(FILE *file1, FILE *file2, Object *obj) {
 				return NULL;
 			}
 			faces = obj->faces;
-			createFace(line, &obj->faces[obj->numberOfFaces++]);
+			createFace(line, &obj->faces[obj->numberOfFaces]);
+			obj->numberOfFaces++;
 		}
 	}
 
-	free(line);
 	fclose(file1);
 	fclose(file2);
 	return obj;
 }
 
-char* currentFile(const char *fileName) {
-	char *temp = (char*) calloc(1, sizeof(char));
-	int counter = 0;
-	while (temp[counter] != '\0') {
-		temp[counter] = fileName[counter];
-		counter++;
+//char* currentFile(const char *fileName) {
+//	char *temp = (char*) calloc(1, sizeof(char));
+//	int counter = 0;
+//	while (temp[counter] != '\0') {
+//		temp[counter] = fileName[counter];
+//		counter++;
+//	}
+//	return temp;
+//}
+Lnode* insertLast(Lnode *head, Object *obj) {
+	Lnode *tempPtr = head;
+	if (head->object == NULL) {
+		head->object = obj;
+		return head;
 	}
-	return temp;
+	Lnode *newNode = (Lnode*) malloc(sizeof(Lnode));
+	newNode->object = obj;
+	newNode->next = NULL;
+	while (tempPtr->next != NULL) {
+		tempPtr = tempPtr->next;
+
+	}
+	tempPtr->next = newNode;
+	return head;
 }
 Scene* createScene(char *fileName, ...) {
 	va_list files;
 	va_start(files, fileName);
-	Scene *scene = malloc(sizeof(Scene));
+	Scene *scene = (Scene*)malloc(sizeof(Scene));
 	if (scene == NULL) {
 		printf("Can't allocate memory , canceling");
 		return NULL;
@@ -191,19 +205,16 @@ Scene* createScene(char *fileName, ...) {
 		printf("Cannot access file, canceling !\n");
 		return NULL;
 	}
-	char *fileRead = currentFile(fileName);
+	char *fileRead = fileName;
 	scene->head = (Lnode*) calloc(1, sizeof(Lnode));
-	Lnode *nodePtr = (*scene).head;
-	nodePtr = calloc(1, sizeof(scene->head));
 	while (fileRead != NULL) {
-		Object *object = createObject(fileName);
+		Object *object = createObject(fileRead);
 
 		scene->numofobjects++;
-		nodePtr->next = object;
+		scene->head = insertLast(scene->head, object);
 		fileRead = va_arg(files, char*);
 	}
 	va_end(files);
-	scene->head = nodePtr;
 	return scene;
 }
 //prints the triangular faces
@@ -228,33 +239,18 @@ void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
 	for (int i = 0; i < ptr->numberOfFaces; ++i) {
 		int size = ptr->faces[i].size;
 		if (size == 3) {
-			int firstV = ptr->faces[i].vertex[0];
-			int secondV = ptr->faces[i].vertex[1];
-			int thirdV = ptr->faces[i].vertex[2];
-			double firstTRib = sqrt(
-					pow(ptr->vertexes[firstV].x - ptr->vertexes[secondV].x, 2)
-							+ (pow(
-									ptr->vertexes[firstV].y
-											- ptr->vertexes[secondV].y, 2))
-							+ (pow(
-									ptr->vertexes[firstV].z
-											- ptr->vertexes[secondV].z, 2))); //first and second
-			double secondTRib = sqrt(
-					pow(ptr->vertexes[firstV].x - ptr->vertexes[thirdV].x, 2)
-							+ pow(
-									ptr->vertexes[firstV].y
-											- ptr->vertexes[thirdV].y, 2)
-							+ pow(
-									ptr->vertexes[firstV].z
-											- ptr->vertexes[thirdV].z, 2)); //first and third
-			double thirdTRib = sqrt(
-					pow(ptr->vertexes[secondV].x - ptr->vertexes[thirdV].x, 2)
-							+ pow(
-									ptr->vertexes[secondV].y
-											- ptr->vertexes[thirdV].y, 2)
-							+ pow(
-									ptr->vertexes[secondV].z
-											- ptr->vertexes[thirdV].z, 2)); //second and third
+			int firstV = ptr->faces[i].vertex[0]-1;
+			int secondV = ptr->faces[i].vertex[1]-1 ;
+			int thirdV = ptr->faces[i].vertex[2] -1;
+			double firstTRib = sqrt(pow(ptr->vertexes[firstV].x - ptr->vertexes[secondV].x, 2)
+							+ (pow(ptr->vertexes[firstV].y- ptr->vertexes[secondV].y, 2))
+							+ (pow(ptr->vertexes[firstV].z- ptr->vertexes[secondV].z, 2))); //first and second
+			double secondTRib = sqrt(pow(ptr->vertexes[firstV].x - ptr->vertexes[thirdV].x, 2)
+							+ pow(ptr->vertexes[firstV].y- ptr->vertexes[thirdV].y, 2)
+							+ pow(ptr->vertexes[firstV].z- ptr->vertexes[thirdV].z, 2)); //first and third
+			double thirdTRib = sqrt(pow(ptr->vertexes[secondV].x - ptr->vertexes[thirdV].x, 2)
+							+ pow(ptr->vertexes[secondV].y- ptr->vertexes[thirdV].y, 2)
+							+ pow(ptr->vertexes[secondV].z- ptr->vertexes[thirdV].z, 2)); //second and third
 			semiPerimeter = (firstTRib + secondTRib + thirdTRib) / 2;
 			double localArea = sqrt(
 					semiPerimeter * (semiPerimeter - firstTRib)
@@ -267,13 +263,10 @@ void getTotalArea(Object *ptr, void *totalAreaOfTriangularFaces) {
 	*((double*) totalAreaOfTriangularFaces) = totalArea;
 }
 
-void perform(Scene *scene, void (*funcToChoose)(Object*, void*),
-		char *howToPrint, char *strPtr) {
+void perform(Scene *scene, void (*funcToChoose)(Object*, void*),char *howToPrint, char *strPtr) {
 	Lnode *ptr = scene->head;
-
 	if (strcmp(howToPrint, "INT") == 0) {
 		int returnNum = 0;
-
 		while (ptr != NULL) {
 			funcToChoose(ptr->object, &returnNum);
 			ptr = ptr->next;
